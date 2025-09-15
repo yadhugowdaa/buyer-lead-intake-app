@@ -1,0 +1,111 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum City {
+  Chandigarh
+  Mohali
+  Zirakpur
+  Panchkula
+  Other
+}
+
+enum PropertyType {
+  Apartment
+  Villa
+  Plot
+  Office
+  Retail
+}
+
+enum Bhk {
+  ONE
+  TWO
+  THREE
+  FOUR
+  Studio
+}
+
+enum Purpose {
+  Buy
+  Rent
+}
+
+enum Timeline {
+  IMMEDIATE
+  THREE_MONTHS
+  SIX_MONTHS
+  EXPLORING
+}
+
+enum Source {
+  Website
+  Referral
+  Walk_in
+  Call
+  Other
+}
+
+enum Status {
+  New
+  Qualified
+  Contacted
+  Visited
+  Negotiation
+  Converted
+  Dropped
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  buyers       Buyer[]
+  buyerHistory BuyerHistory[]
+}
+
+model Buyer {
+  id           String       @id @default(uuid())
+  fullName     String
+  email        String?
+  phone        String
+  city         City
+  propertyType PropertyType
+  bhk          Bhk?
+  purpose      Purpose
+  budgetMin    Int?
+  budgetMax    Int?
+  timeline     Timeline
+  source       Source
+  status       Status       @default(New)
+  notes        String?
+  tags         String[]     @default([])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  owner        User         @relation(fields: [ownerId], references: [id])
+  ownerId      String
+  history      BuyerHistory[]
+
+  @@index([ownerId])
+}
+
+model BuyerHistory {
+  id          String   @id @default(uuid())
+  buyer       Buyer    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  buyerId     String
+  changedBy   User     @relation(fields: [changedById], references: [id])
+  changedById String
+  changedAt   DateTime @default(now())
+  diff        Json
+
+  @@index([buyerId])
+  @@index([changedById])
+}
